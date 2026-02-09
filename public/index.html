@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookShelf - Book Review Platform</title>
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #5a4bd1;
+      --secondary: #00cec9;
+      --accent: #fdcb6e;
+      --danger: #d63031;
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #2d3436;
+      --text-light: #636e72;
+      --border: #dfe6e9;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .navbar-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-links button {
+      background: none;
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+    .nav-links button:hover { border-color: var(--primary); color: var(--primary); }
+    .nav-links .btn-primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .nav-links .btn-primary:hover { background: var(--primary-dark); }
+    .nav-links .btn-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .nav-links .btn-danger:hover { background: var(--danger); color: white; }
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: #f0efff;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .user-chip .role {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+    .user-chip .role.admin { background: var(--danger); }
+
+    /* LAYOUT */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--card);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .tab {
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-light);
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab.active { background: var(--primary); color: white; }
+    .tab:hover:not(.active) { background: #f0efff; color: var(--primary); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* SEARCH BAR */
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .search-bar input, .search-bar select {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: var(--card);
+      flex: 1;
+      min-width: 180px;
+    }
+    .search-bar input:focus, .search-bar select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+    }
+
+    /* GRID */
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .card-body { padding: 20px; }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .card-author {
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+    .card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-genre { background: #dfe6fd; color: #4a5dc7; }
+    .badge-year { background: #ffeaa7; color: #7d6608; }
+    .badge-pages { background: #e0f7eb; color: #0d7a3e; }
+    .card-desc {
+      font-size: 0.875rem;
+      color: var(--text-light);
+      line-height: 1.55;
+      margin-bottom: 12px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: #fafafa;
+      border-top: 1px solid var(--border);
+    }
+    .rating-display { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+    .rating-display span { color: var(--text-light); font-weight: 400; font-size: 0.8rem; }
+
+    /* BUTTONS */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-block { width: 100%; justify-content: center; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* FORMS */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    .form-group label .req { color: var(--danger); }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.1);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--card);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h2 { font-size: 1.25rem; }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+      padding: 4px;
+    }
+    .modal-body { padding: 24px; }
+
+    /* ALERTS */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 16px;
+    }
+    .alert-success { background: #d4edda; color: #155724; }
+    .alert-error { background: #f8d7da; color: #721c24; }
+    .alert-info { background: #d1ecf1; color: #0c5460; }
+
+    /* EMPTY / LOADING */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+    .loading { text-align: center; padding: 40px; color: var(--text-light); }
+
+    /* BOOK DETAIL VIEW */
+    .book-detail {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .book-detail h1 { font-size: 1.75rem; margin-bottom: 4px; }
+    .book-detail .author { font-size: 1.1rem; color: var(--text-light); margin-bottom: 16px; }
+    .book-detail .meta { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .book-detail .desc { line-height: 1.7; color: var(--text-light); margin-bottom: 20px; }
+    .book-detail .rating-big {
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .book-detail .rating-big .stars { color: var(--accent); }
+    .book-detail .rating-big .count { font-size: 0.9rem; color: var(--text-light); font-weight: 400; }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      cursor: pointer;
+      font-weight: 600;
+      margin-bottom: 16px;
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+    }
+    .back-btn:hover { text-decoration: underline; }
+
+    /* REVIEWS LIST */
+    .review-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 12px;
+    }
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+    .review-user { font-weight: 700; }
+    .review-date { font-size: 0.8rem; color: var(--text-light); }
+    .review-stars { color: var(--accent); font-size: 1.1rem; margin-bottom: 8px; }
+    .review-comment { color: var(--text-light); line-height: 1.6; }
+    .review-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+    /* ADMIN SECTION */
+    .admin-panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+    .admin-panel h2 {
+      font-size: 1.25rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .admin-badge {
+      background: var(--danger);
+      color: white;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+    .admin-book-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-book-row:last-child { border-bottom: none; }
+    .admin-book-info { flex: 1; }
+    .admin-book-info strong { display: block; }
+    .admin-book-info small { color: var(--text-light); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .navbar-inner { padding: 0; }
+      .nav-links { gap: 4px; }
+      .nav-links button { padding: 6px 12px; font-size: 0.8rem; }
+      .user-chip { font-size: 0.75rem; padding: 4px 10px; }
+      .container { padding: 16px; }
+      .books-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .tabs { gap: 2px; }
+      .tab { padding: 8px 14px; font-size: 0.82rem; }
+      .search-bar { flex-direction: column; }
+      .search-bar input, .search-bar select { min-width: 100%; }
+      .book-detail { padding: 20px; }
+      .book-detail h1 { font-size: 1.4rem; }
+      .modal { margin: 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .logo { font-size: 1.2rem; }
+      .nav-links button { padding: 6px 10px; }
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="#" class="logo" onclick="showTab('books'); return false;">📚 BookShelf</a>
+      <div class="nav-links" id="navLinks">
+        <div class="user-chip hidden" id="userChip">
+          <span id="userName"></span>
+          <span class="role" id="userRole"></span>
+        </div>
+        <button onclick="showLoginModal()" id="navLoginBtn">Log In</button>
+        <button onclick="showRegisterModal()" id="navRegisterBtn" class="btn-primary">Sign Up</button>
+        <button onclick="logout()" id="navLogoutBtn" class="btn-danger hidden">Log Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Tabs -->
+    <div class="tabs" id="mainTabs">
+      <button class="tab active" onclick="showTab('books')">📖 Books</button>
+      <button class="tab" onclick="showTab('reviews')">💬 Reviews</button>
+      <button class="tab hidden" onclick="showTab('admin')" id="adminTab">🔧 Admin</button>
+      <button class="tab hidden" onclick="showTab('profile')" id="profileTab">👤 Profile</button>
+    </div>
+
+    <!-- BOOKS TAB -->
+    <div class="tab-content active" id="tab-books">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search books by title or author..." oninput="debouncedSearch()">
+        <select id="genreFilter" onchange="loadBooks()">
+          <option value="">All Genres</option>
+          <option value="Fiction">Fiction</option>
+          <option value="Non-Fiction">Non-Fiction</option>
+          <option value="Science Fiction">Science Fiction</option>
+          <option value="Fantasy">Fantasy</option>
+          <option value="Romance">Romance</option>
+          <option value="Thriller">Thriller</option>
+          <option value="Mystery">Mystery</option>
+          <option value="Horror">Horror</option>
+          <option value="Biography">Biography</option>
+          <option value="History">History</option>
+          <option value="Science">Science</option>
+          <option value="Self-Help">Self-Help</option>
+        </select>
+        <select id="sortSelect" onchange="loadBooks()">
+          <option value="">Newest</option>
+          <option value="rating">Top Rated</option>
+          <option value="title">A-Z</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+      <div class="books-grid" id="booksGrid">
+        <div class="loading">Loading books...</div>
+      </div>
+    </div>
+
+    <!-- BOOK DETAIL TAB -->
+    <div class="tab-content" id="tab-bookDetail"></div>
+
+    <!-- REVIEWS TAB -->
+    <div class="tab-content" id="tab-reviews">
+      <h2 style="margin-bottom: 20px;">Recent Reviews</h2>
+      <div id="allReviewsList">
+        <div class="loading">Loading reviews...</div>
+      </div>
+    </div>
+
+    <!-- ADMIN TAB -->
+    <div class="tab-content" id="tab-admin">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Add Book Form -->
+        <div class="admin-panel">
+          <h2>Add New Book <span class="admin-badge">Admin</span></h2>
+          <form id="addBookForm" onsubmit="handleAddBook(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Title <span class="req">*</span></label>
+                <input type="text" id="bookTitle" required placeholder="The Great Gatsby">
+              </div>
+              <div class="form-group">
+                <label>Author <span class="req">*</span></label>
+                <input type="text" id="bookAuthor" required placeholder="F. Scott Fitzgerald">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Genre <span class="req">*</span></label>
+                <input type="text" id="bookGenre" required placeholder="Fiction">
+              </div>
+              <div class="form-group">
+                <label>Year</label>
+                <input type="number" id="bookYear" min="0" placeholder="1925">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Pages</label>
+              <input type="number" id="bookPages" min="1" placeholder="180">
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="bookDescription" placeholder="Brief description..." maxlength="1000"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Add Book</button>
+          </form>
+          <div id="addBookMsg"></div>
+        </div>
+
+        <!-- Manage Books -->
+        <div class="admin-panel">
+          <h2>Manage Books <span class="admin-badge">Admin</span></h2>
+          <div id="adminBooksList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div class="tab-content" id="tab-profile">
+      <div class="admin-panel" style="max-width:500px;">
+        <h2>👤 My Profile</h2>
+        <div id="profileInfo"></div>
+        <h3 style="margin-top:24px; margin-bottom:12px;">My Reviews</h3>
+        <div id="myReviewsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Welcome Back</h2>
+        <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="loginEmail" required placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password <span class="req">*</span></label>
+            <input type="password" id="loginPassword" required placeholder="Your password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Log In</button>
+        </form>
+        <div id="loginMsg" style="margin-top:12px;"></div>
+        <p style="text-align:center; margin-top:16px; font-size:0.875rem; color:var(--text-light);">
+          Don't have an account? <a href="#" onclick="closeModal('loginModal'); showRegisterModal();" style="color:var(--primary); font-weight:600;">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div class="modal-overlay" id="registerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Create Account</h2>
+        <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="registerForm" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="registerName" placeholder="Your name">
+          </div>
+          <div class="form-group">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="registerEmail" required placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password <span class="req">*</span></label>
+            <input type="password" id="registerPassword" required placeholder="Min 6 characters" minlength="6">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="registerRole">
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+        </form>
+        <div id="registerMsg" style="margin-top:12px;"></div>
+        <p style="text-align:center; margin-top:16px; font-size:0.875rem; color:var(--text-light);">
+          Already have an account? <a href="#" onclick="closeModal('registerModal'); showLoginModal();" style="color:var(--primary); font-weight:600;">Log in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW MODAL -->
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Write a Review</h2>
+        <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:16px; color:var(--text-light);" id="reviewBookTitle"></p>
+        <form id="reviewForm" onsubmit="handleSubmitReview(event)">
+          <input type="hidden" id="reviewBookId">
+          <div class="form-group">
+            <label>Rating <span class="req">*</span></label>
+            <div id="starPicker" style="font-size:2rem; cursor:pointer; user-select:none;">
+              <span onclick="setRating(1)" data-star="1">☆</span>
+              <span onclick="setRating(2)" data-star="2">☆</span>
+              <span onclick="setRating(3)" data-star="3">☆</span>
+              <span onclick="setRating(4)" data-star="4">☆</span>
+              <span onclick="setRating(5)" data-star="5">☆</span>
+            </div>
+            <input type="hidden" id="reviewRating" required>
+          </div>
+          <div class="form-group">
+            <label>Comment</label>
+            <textarea id="reviewComment" placeholder="Share your thoughts..." maxlength="1000"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Submit Review</button>
+        </form>
+        <div id="reviewMsg" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT BOOK MODAL -->
+  <div class="modal-overlay" id="editBookModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Book</h2>
+        <button class="modal-close" onclick="closeModal('editBookModal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="editBookForm" onsubmit="handleEditBook(event)">
+          <input type="hidden" id="editBookId">
+          <div class="form-group">
+            <label>Title <span class="req">*</span></label>
+            <input type="text" id="editBookTitle" required>
+          </div>
+          <div class="form-group">
+            <label>Author <span class="req">*</span></label>
+            <input type="text" id="editBookAuthor" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Genre <span class="req">*</span></label>
+              <input type="text" id="editBookGenre" required>
+            </div>
+            <div class="form-group">
+              <label>Year</label>
+              <input type="number" id="editBookYear" min="0">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Pages</label>
+            <input type="number" id="editBookPages" min="1">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="editBookDesc" maxlength="1000"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+        </form>
+        <div id="editBookMsg" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // STATE
+    const API = '/api';
+    let currentUser = null;
+    let searchTimeout = null;
+
+    // INIT
+    window.addEventListener('load', () => {
+      restoreAuth();
+      loadBooks();
+    });
+
+    // AUTH
+    function restoreAuth() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (token && user) {
+        currentUser = { ...user, token };
+        updateAuthUI();
+      }
+    }
+
+    function updateAuthUI() {
+      const chip = document.getElementById('userChip');
+      const loginBtn = document.getElementById('navLoginBtn');
+      const regBtn = document.getElementById('navRegisterBtn');
+      const logoutBtn = document.getElementById('navLogoutBtn');
+      const adminTab = document.getElementById('adminTab');
+      const profileTab = document.getElementById('profileTab');
+
+      if (currentUser) {
+        chip.classList.remove('hidden');
+        document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+        const roleEl = document.getElementById('userRole');
+        roleEl.textContent = currentUser.role;
+        roleEl.className = 'role' + (currentUser.role === 'admin' ? ' admin' : '');
+        loginBtn.classList.add('hidden');
+        regBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        adminTab.classList.toggle('hidden', currentUser.role !== 'admin');
+        profileTab.classList.remove('hidden');
+      } else {
+        chip.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        regBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        adminTab.classList.add('hidden');
+        profileTab.classList.add('hidden');
+      }
+    }
+
+    function headers(json = true) {
+      const h = {};
+      if (json) h['Content-Type'] = 'application/json';
+      if (currentUser?.token) h['Authorization'] = `Bearer ${currentUser.token}`;
+      return h;
+    }
+
+    function showLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+    function showRegisterModal() { document.getElementById('registerModal').classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.data.token);
+          localStorage.setItem('user', JSON.stringify(data.data));
+          currentUser = { ...data.data };
+          updateAuthUI();
+          closeModal('loginModal');
+          document.getElementById('loginForm').reset();
+          document.getElementById('loginMsg').innerHTML = '';
+          loadBooks();
+        } else {
+          showAlert('loginMsg', data.message || 'Login failed', 'error');
+        }
+      } catch (err) {
+        showAlert('loginMsg', err.message, 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const body = {
+        name: document.getElementById('registerName').value,
+        email: document.getElementById('registerEmail').value,
+        password: document.getElementById('registerPassword').value,
+        role: document.getElementById('registerRole').value
+      };
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('token', data.data.token);
+          localStorage.setItem('user', JSON.stringify(data.data));
+          currentUser = { ...data.data };
+          updateAuthUI();
+          closeModal('registerModal');
+          document.getElementById('registerForm').reset();
+          document.getElementById('registerMsg').innerHTML = '';
+          loadBooks();
+        } else {
+          const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
+          showAlert('registerMsg', msg, 'error');
+        }
+      } catch (err) {
+        showAlert('registerMsg', err.message, 'error');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      currentUser = null;
+      updateAuthUI();
+      showTab('books');
+    }
+
+    // TABS
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+      // Find the tab button
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => {
+        if (t.getAttribute('onclick')?.includes(`'${name}'`)) {
+          t.classList.add('active');
+        }
+      });
+
+      const el = document.getElementById(`tab-${name}`);
+      if (el) el.classList.add('active');
+
+      // Load data for tab
+      if (name === 'books') loadBooks();
+      if (name === 'reviews') loadAllReviews();
+      if (name === 'admin') loadAdminBooks();
+      if (name === 'profile') loadProfile();
+    }
+
+    // BOOKS
+    function debouncedSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(loadBooks, 300);
+    }
+
+    async function loadBooks() {
+      const grid = document.getElementById('booksGrid');
+      const search = document.getElementById('searchInput')?.value || '';
+      const genre = document.getElementById('genreFilter')?.value || '';
+      const sort = document.getElementById('sortSelect')?.value || '';
+
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (genre) params.append('genre', genre);
+      if (sort) params.append('sort', sort);
+
+      grid.innerHTML = '<div class="loading">Loading...</div>';
+
+      try {
+        const res = await fetch(`${API}/books?${params}`);
+        const data = await res.json();
+
+        if (data.data && data.data.length > 0) {
+          grid.innerHTML = data.data.map(book => `
+            <div class="card" onclick="viewBook('${book._id}')" style="cursor:pointer;">
+              <div class="card-body">
+                <div class="card-title">${esc(book.title)}</div>
+                <div class="card-author">by ${esc(book.author)}</div>
+                <div class="card-meta">
+                  <span class="badge badge-genre">${esc(book.genre)}</span>
+                  ${book.year ? `<span class="badge badge-year">${book.year}</span>` : ''}
+                  ${book.pages ? `<span class="badge badge-pages">${book.pages} pages</span>` : ''}
+                </div>
+                ${book.description ? `<div class="card-desc">${esc(book.description)}</div>` : ''}
+              </div>
+              <div class="card-footer">
+                <div class="rating-display">
+                  ${book.averageRating > 0 ? `⭐ ${book.averageRating}` : 'No ratings'}
+                  <span>${book.reviewCount || 0} review${book.reviewCount !== 1 ? 's' : ''}</span>
+                </div>
+                ${currentUser ? `<button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); openReviewModal('${book._id}', '${esc(book.title)}')">Review</button>` : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column: 1/-1;">
+              <div class="icon">📚</div>
+              <p>No books found</p>
+            </div>
+          `;
+        }
+      } catch (err) {
+        grid.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+      }
+    }
+
+    // BOOK DETAIL
+    async function viewBook(id) {
+      const container = document.getElementById('tab-bookDetail');
+      // Switch to detail tab
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      container.classList.add('active');
+
+      container.innerHTML = '<div class="loading">Loading...</div>';
+
+      try {
+        const [bookRes, reviewsRes] = await Promise.all([
+          fetch(`${API}/books/${id}`),
+          fetch(`${API}/books/${id}/reviews`)
+        ]);
+        const bookData = await bookRes.json();
+        const reviewsData = await reviewsRes.json();
+
+        if (!bookRes.ok) {
+          container.innerHTML = '<div class="alert alert-error">Book not found</div>';
+          return;
+        }
+
+        const book = bookData.data;
+        const reviews = reviewsData.data || [];
+
+        container.innerHTML = `
+          <button class="back-btn" onclick="showTab('books')">← Back to Books</button>
+          <div class="book-detail">
+            <h1>${esc(book.title)}</h1>
+            <div class="author">by ${esc(book.author)}</div>
+            <div class="meta">
+              <span class="badge badge-genre">${esc(book.genre)}</span>
+              ${book.year ? `<span class="badge badge-year">${book.year}</span>` : ''}
+              ${book.pages ? `<span class="badge badge-pages">${book.pages} pages</span>` : ''}
+            </div>
+            ${book.description ? `<div class="desc">${esc(book.description)}</div>` : ''}
+            <div class="rating-big">
+              <span class="stars">${book.averageRating > 0 ? '⭐ ' + book.averageRating : '☆'}</span>
+              <span class="count">(${book.reviewCount || 0} review${book.reviewCount !== 1 ? 's' : ''})</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <h2>Reviews</h2>
+            ${currentUser ? `<button class="btn btn-primary btn-sm" onclick="openReviewModal('${book._id}', '${esc(book.title)}')">Write Review</button>` : '<span style="font-size:0.85rem; color:var(--text-light);">Log in to write a review</span>'}
+          </div>
+
+          <div id="bookReviewsList">
+            ${reviews.length > 0 ? reviews.map(r => renderReview(r)).join('') : '<div class="empty-state"><div class="icon">💬</div><p>No reviews yet. Be the first!</p></div>'}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+      }
+    }
+
+    function renderReview(r) {
+      const userName = r.user ? (r.user.name || r.user.email) : 'Unknown';
+      const isOwner = currentUser && r.user && (currentUser._id === r.user._id);
+      const isAdmin = currentUser && currentUser.role === 'admin';
+
+      return `
+        <div class="review-item">
+          <div class="review-header">
+            <span class="review-user">${esc(userName)}</span>
+            <span class="review-date">${formatDate(r.createdAt)}</span>
+          </div>
+          <div class="review-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+          ${r.comment ? `<div class="review-comment">${esc(r.comment)}</div>` : ''}
+          ${(isOwner || isAdmin) ? `
+            <div class="review-actions">
+              <button class="btn btn-sm btn-danger" onclick="deleteReview('${r._id}', '${r.book?._id || r.book}')">Delete</button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // REVIEWS
+    function setRating(n) {
+      document.getElementById('reviewRating').value = n;
+      document.querySelectorAll('#starPicker span').forEach((star, i) => {
+        star.textContent = i < n ? '★' : '☆';
+        star.style.color = i < n ? '#fdcb6e' : '#ccc';
+      });
+    }
+
+    function openReviewModal(bookId, bookTitle) {
+      if (!currentUser) { showLoginModal(); return; }
+      document.getElementById('reviewBookId').value = bookId;
+      document.getElementById('reviewBookTitle').textContent = `Reviewing: ${bookTitle}`;
+      setRating(0);
+      document.getElementById('reviewComment').value = '';
+      document.getElementById('reviewMsg').innerHTML = '';
+      document.getElementById('reviewModal').classList.add('active');
+    }
+
+    async function handleSubmitReview(e) {
+      e.preventDefault();
+      const bookId = document.getElementById('reviewBookId').value;
+      const rating = parseInt(document.getElementById('reviewRating').value);
+      const comment = document.getElementById('reviewComment').value;
+
+      if (!rating || rating < 1 || rating > 5) {
+        showAlert('reviewMsg', 'Please select a rating', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/reviews`, {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify({ book: bookId, rating, comment: comment || undefined })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('reviewMsg', 'Review submitted!', 'success');
+          setTimeout(() => {
+            closeModal('reviewModal');
+            viewBook(bookId);
+          }, 800);
+        } else {
+          showAlert('reviewMsg', data.message || 'Failed to submit review', 'error');
+        }
+      } catch (err) {
+        showAlert('reviewMsg', err.message, 'error');
+      }
+    }
+
+    async function deleteReview(reviewId, bookId) {
+      if (!confirm('Delete this review?')) return;
+      try {
+        const res = await fetch(`${API}/reviews/${reviewId}`, {
+          method: 'DELETE',
+          headers: headers()
+        });
+        if (res.ok) {
+          if (bookId) viewBook(bookId);
+          else loadAllReviews();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function loadAllReviews() {
+      const container = document.getElementById('allReviewsList');
+      container.innerHTML = '<div class="loading">Loading...</div>';
+      try {
+        const res = await fetch(`${API}/reviews`);
+        const data = await res.json();
+        if (data.data && data.data.length > 0) {
+          container.innerHTML = data.data.map(r => {
+            const bookTitle = r.book ? `${r.book.title} by ${r.book.author}` : 'Unknown book';
+            const userName = r.user ? (r.user.name || r.user.email) : 'Unknown';
+            const isOwner = currentUser && r.user && (currentUser._id === r.user._id);
+            const isAdmin = currentUser && currentUser.role === 'admin';
+            return `
+              <div class="review-item" style="cursor:pointer;" onclick="viewBook('${r.book?._id || ''}')">
+                <div style="font-size:0.8rem; color:var(--primary); margin-bottom:4px; font-weight:600;">📖 ${esc(bookTitle)}</div>
+                <div class="review-header">
+                  <span class="review-user">${esc(userName)}</span>
+                  <span class="review-date">${formatDate(r.createdAt)}</span>
+                </div>
+                <div class="review-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                ${r.comment ? `<div class="review-comment">${esc(r.comment)}</div>` : ''}
+                ${(isOwner || isAdmin) ? `
+                  <div class="review-actions">
+                    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteReview('${r._id}', '')">Delete</button>
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No reviews yet</p></div>';
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-error">Error: ${err.message}</div>`;
+      }
+    }
+
+    // ADMIN
+    async function handleAddBook(e) {
+      e.preventDefault();
+      const body = {
+        title: document.getElementById('bookTitle').value,
+        author: document.getElementById('bookAuthor').value,
+        genre: document.getElementById('bookGenre').value,
+        year: document.getElementById('bookYear').value || undefined,
+        pages: document.getElementById('bookPages').value || undefined,
+        description: document.getElementById('bookDescription').value || undefined
+      };
+      try {
+        const res = await fetch(`${API}/books`, {
+          method: 'POST',
+          headers: headers(),
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('addBookMsg', `"${data.data.title}" added!`, 'success');
+          document.getElementById('addBookForm').reset();
+          loadAdminBooks();
+        } else {
+          const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
+          showAlert('addBookMsg', msg, 'error');
+        }
+      } catch (err) {
+        showAlert('addBookMsg', err.message, 'error');
+      }
+    }
+
+    async function loadAdminBooks() {
+      const container = document.getElementById('adminBooksList');
+      if (!container) return;
+      container.innerHTML = '<div class="loading">Loading...</div>';
+      try {
+        const res = await fetch(`${API}/books`);
+        const data = await res.json();
+        if (data.data && data.data.length > 0) {
+          container.innerHTML = data.data.map(b => `
+            <div class="admin-book-row">
+              <div class="admin-book-info">
+                <strong>${esc(b.title)}</strong>
+                <small>${esc(b.author)} · ${esc(b.genre)} ${b.year ? '· ' + b.year : ''}</small>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm btn-outline" onclick="openEditBookModal('${b._id}')">Edit</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteBook('${b._id}')">Delete</button>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = '<div class="empty-state">No books yet</div>';
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+    }
+
+    async function openEditBookModal(id) {
+      try {
+        const res = await fetch(`${API}/books/${id}`);
+        const data = await res.json();
+        if (res.ok) {
+          const b = data.data;
+          document.getElementById('editBookId').value = b._id;
+          document.getElementById('editBookTitle').value = b.title;
+          document.getElementById('editBookAuthor').value = b.author;
+          document.getElementById('editBookGenre').value = b.genre;
+          document.getElementById('editBookYear').value = b.year || '';
+          document.getElementById('editBookPages').value = b.pages || '';
+          document.getElementById('editBookDesc').value = b.description || '';
+          document.getElementById('editBookMsg').innerHTML = '';
+          document.getElementById('editBookModal').classList.add('active');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function handleEditBook(e) {
+      e.preventDefault();
+      const id = document.getElementById('editBookId').value;
+      const body = {
+        title: document.getElementById('editBookTitle').value,
+        author: document.getElementById('editBookAuthor').value,
+        genre: document.getElementById('editBookGenre').value,
+        year: document.getElementById('editBookYear').value || undefined,
+        pages: document.getElementById('editBookPages').value || undefined,
+        description: document.getElementById('editBookDesc').value || undefined
+      };
+      try {
+        const res = await fetch(`${API}/books/${id}`, {
+          method: 'PUT',
+          headers: headers(),
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showAlert('editBookMsg', 'Book updated!', 'success');
+          setTimeout(() => {
+            closeModal('editBookModal');
+            loadAdminBooks();
+            loadBooks();
+          }, 600);
+        } else {
+          const msg = data.errors ? data.errors.map(e => e.message).join(', ') : data.message;
+          showAlert('editBookMsg', msg, 'error');
+        }
+      } catch (err) {
+        showAlert('editBookMsg', err.message, 'error');
+      }
+    }
+
+    async function deleteBook(id) {
+      if (!confirm('Delete this book and all its reviews?')) return;
+      try {
+        const res = await fetch(`${API}/books/${id}`, {
+          method: 'DELETE',
+          headers: headers()
+        });
+        if (res.ok) {
+          loadAdminBooks();
+          loadBooks();
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    // PROFILE
+    async function loadProfile() {
+      if (!currentUser) return;
+      const info = document.getElementById('profileInfo');
+      info.innerHTML = `
+        <p><strong>Name:</strong> ${esc(currentUser.name || 'N/A')}</p>
+        <p><strong>Email:</strong> ${esc(currentUser.email)}</p>
+        <p><strong>Role:</strong> ${currentUser.role}</p>
+      `;
+
+      const container = document.getElementById('myReviewsList');
+      container.innerHTML = '<div class="loading">Loading...</div>';
+      try {
+        const res = await fetch(`${API}/reviews`, { headers: headers() });
+        const data = await res.json();
+        const myReviews = (data.data || []).filter(r => r.user && r.user._id === currentUser._id);
+        if (myReviews.length > 0) {
+          container.innerHTML = myReviews.map(r => {
+            const bookTitle = r.book ? r.book.title : 'Unknown';
+            return `
+              <div class="review-item">
+                <div style="font-size:0.8rem; color:var(--primary); margin-bottom:4px; font-weight:600;">📖 ${esc(bookTitle)}</div>
+                <div class="review-stars">${'⭐'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                ${r.comment ? `<div class="review-comment">${esc(r.comment)}</div>` : ''}
+                <div class="review-actions">
+                  <button class="btn btn-sm btn-danger" onclick="deleteReview('${r._id}', ''); loadProfile();">Delete</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = '<div class="empty-state">You haven\'t written any reviews yet.</div>';
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-error">${err.message}</div>`;
+      }
+    }
+
+    // UTILS
+    function esc(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatDate(d) {
+      return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function showAlert(id, msg, type) {
+      document.getElementById(id).innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+      setTimeout(() => { const el = document.getElementById(id); if (el) el.innerHTML = ''; }, 5000);
+    }
+
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>
